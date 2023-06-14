@@ -1,7 +1,7 @@
 import passport from "passport";
-import FacebookStrategy from "passport-facebook";
+// import FacebookStrategy from "passport-facebook";
 import GitHubStrategy from "passport-github";
-import GoogleStrategy from "passport-google-oauth";
+// import GoogleStrategy from "passport-google-oauth";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";

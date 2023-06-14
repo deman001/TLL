@@ -11,6 +11,9 @@ import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import postRoutes from "./routes/posts.js";
+import toolRoutes from "./routes/tool.js";
+import lendingRoutes from "./routes/lending.js";
+import chatRoutes from "./routes/chat.routes.js";
 import { register } from "./controllers/auth.js";
 import { createPost } from "./controllers/posts.js";
 import { verifyToken } from "./middleware/auth.js";
@@ -36,11 +39,15 @@ passport.deserializeUser(function (id, done) {
         done(err, user);
     });
 });
+import { createServer } from "http";
+import { Server } from "socket.io";
+
 /* CONFIGURATIONS */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
 const app = express();
+const server = createServer(app);
 app.use(express.json());
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
@@ -51,7 +58,8 @@ app.use(cors());
 app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 app.use(passport.initialize());
 app.use(session({
-    secret: process.env.SECRET_KEY,
+    secret: process.env.JWT_SECRET,
+    //secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: false
 }));
@@ -75,20 +83,61 @@ app.post("/posts", verifyToken, upload.single("picture"), createPost);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
+app.use("/tools", toolRoutes);
+app.use("/lendings", lendingRoutes);
+app.use("/chat", chatRoutes);
 
 
 
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;
+// mongoose.set('strictQuery', true);
 mongoose
   .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+   server.listen(PORT, () => console.log(`Server Port: ${PORT}`));
 
+
+
+    const io = new Server(server, {
+      pingTimeout: 60000,
+      cors: {
+        origin: ["http://localhost:3000"],
+        credentials: true,
+      },
+    });
+    io.on("connection", (socket) => {
+      console.log("socket io connected id is ___________ " + socket.id);
+    
+
+      global.socket = socket;
+
+      socket.on("join_room", (userId) => {
+        socket.join(userId); // creating a room for perticular user using it's own _id
+        console.log("...............room joined" + userId);
+        socket.emit("connected");
+      });
+
+
+socket.on("msg_received", (newMessageReceived) => {
+  let chat = newMessageReceived.chat;
+
+  if (!chat.users) return console.log("chat.users not defined");
+  chat.users.forEach((user) => {
+    if (user._id == newMessageReceived.sender._id) return;
+    socket.in(user._id).emit("message received", newMessageReceived);
+  });
+});
+
+      // Disconnect event
+      socket.on("disconnect", () => {
+        console.log("A client disconnected");
+      });
+    });
     /* ADD DATA ONE TIME */
     // User.insertMany(users);
     // Post.insertMany(posts);
