@@ -1,4 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { combineReducers } from "redux";
+import { toolListSlice } from "./tools/toolSlice";
+import { persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
 
 const initialState = {
   mode: "light",
@@ -12,7 +16,7 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     setMode: (state) => {
-      state.mode = state.mode === "light" ? "dark" : "light";
+      state.mode = state.auth?.mode === "light" ? "dark" : "light";
     },
     setLogin: (state, action) => {
       state.user = action.payload.user;
@@ -22,6 +26,7 @@ export const authSlice = createSlice({
       state.user = null;
       state.token = null;
     },
+    
     setFriends: (state, action) => {
       if (state.user) {
         state.user.friends = action.payload.friends;
@@ -42,6 +47,10 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setMode, setLogin, setLogout, setFriends, setPosts, setPost } =
-  authSlice.actions;
-export default authSlice.reducer;
+export const { setMode, setLogin, setLogout, setFriends, setPosts, setPost } = authSlice.actions;
+const persistConfig = { key: "root", storage, version: 1 };
+const persistedReducer = persistReducer(persistConfig, authSlice.reducer);
+export const rootReducer = combineReducers({
+  auth: persistedReducer,
+  tools: toolListSlice.reducer,
+});

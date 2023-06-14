@@ -26,8 +26,8 @@ const MyPostWidget = ({ picturePath }) => {
   const [image, setImage] = useState(null);
   const [post, setPost] = useState("");
   const { palette } = useTheme();
-  const { _id } = useSelector((state) => state.user);
-  const token = useSelector((state) => state.token);
+  const { _id } = useSelector((state) => state.auth?.user);
+  const token = useSelector((state) => state.auth?.token);
   const mediumMain = palette.neutral.mediumMain;
   const medium = palette.neutral.medium;
 

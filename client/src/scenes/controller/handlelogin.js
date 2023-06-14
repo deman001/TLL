@@ -5,7 +5,7 @@ import React, { useEffect } from "react";
 
 const HandleLogin = () => {
     const dispatch = useDispatch();
-    const isLoggedIn = Boolean(useSelector((state) => state.token));
+    const isLoggedIn = Boolean(useSelector((state) => state.auth?.token));
     const navigate = useNavigate();
 
     useEffect(() => {
