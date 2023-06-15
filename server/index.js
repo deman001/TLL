@@ -91,7 +91,7 @@ app.use("/chat", chatRoutes);
 
 const uri = "mongodb+srv://deman001:emanda051599@cluster0.jjithlc.mongodb.net/";
 /* MONGOOSE SETUP */
-const PORT = process.env.PORT || 6001;
+const PORT = process.env.PORT || 3001;
 // mongoose.set('strictQuery', true);
 mongoose
   .connect(uri, {
